@@ -1,2 +1,12 @@
 source 'https://rubygems.org'
-gem 'unicorn'
+platforms :ruby do # linux
+
+  gem 'unicorn'
+
+end
+
+platforms :mswin do
+
+  # gems specific to windows
+
+end
