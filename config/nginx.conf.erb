@@ -31,15 +31,19 @@ http {
     server ggn-nginx-test-target.herokuapp.com;
   }
 
+  upstream backend {
+    server cors-f.herokuapp.com max_fails=3 fail_timeout=30s;
+    server cors-f1.herokuapp.com max_fails=3 fail_timeout=30s;
+    server cors-f2.herokuapp.com backup;
+  }
+
   server {
     listen <%= ENV["PORT"] %>;
     server_name _;
 
     location / {
-      set $upstream upstream_production;
-      proxy_pass http://$upstream;
-      proxy_set_header x-forwarded-host $host;
-      proxy_set_header Host ggn-nginx-test-target.herokuapp.com;
+      proxy_pass http://backend;
+      health_check;
     }
 
   }
