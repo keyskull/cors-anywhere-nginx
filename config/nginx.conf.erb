@@ -27,10 +27,6 @@ http {
   # Must read the body in 5 seconds.
   client_body_timeout <%= ENV['NGINX_CLIENT_BODY_TIMEOUT'] || 5 %>;
 
-  upstream upstream_production {
-    server ggn-nginx-test-target.herokuapp.com;
-  }
-
   upstream backend {
     server cors-f.herokuapp.com max_fails=3 fail_timeout=30s;
     server cors-f1.herokuapp.com max_fails=3 fail_timeout=30s;
@@ -40,6 +36,8 @@ http {
   server {
     listen <%= ENV["PORT"] %>;
     server_name _;
+    keepalive_timeout 5;
+    client_max_body_size <%= ENV['NGINX_CLIENT_MAX_BODY_SIZE'] || 1 %>M;
 
     location / {
       proxy_pass http://backend;
