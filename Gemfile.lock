@@ -3,10 +3,9 @@ GEM
   specs:
 
 PLATFORMS
+  ruby
   x64-mingw32
-
-DEPENDENCIES
-  unicorn
+  x86_64-linux
 
 BUNDLED WITH
    2.1.4
