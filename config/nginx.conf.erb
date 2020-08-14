@@ -42,7 +42,6 @@ http {
 
     location / {
       proxy_pass https://backend;
-      health_check interval=10 fails=3 passes=2;
     }
 
   }
