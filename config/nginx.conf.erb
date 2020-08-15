@@ -1,56 +1,57 @@
 daemon off;
-# Heroku dynos have at least 4 cores.
+
 worker_processes <%= ENV['NGINX_WORKERS'] || 4 %>;
 
 events {
-  use epoll;
-  accept_mutex on;
-  worker_connections <%= ENV['NGINX_WORKER_CONNECTIONS'] || 1024 %>;
+	use epoll;
+	accept_mutex on;
+	worker_connections 1024;
 }
 
 http {
-  gzip on;
-  gzip_comp_level 2;
-  gzip_min_length 512;
+	# Buffers
+	client_body_buffer_size 10K;
+	client_header_buffer_size 1k;
+	client_max_body_size 8m;
+	large_client_header_buffers 2 1k;
 
-  server_tokens off;
+	# Timeouts
+	client_body_timeout 12;
+	client_header_timeout 12;
+	keepalive_timeout 15;
+	send_timeout 10;
 
-  log_format l2met 'measure#nginx.service=$request_time request_id=$http_x_request_id';
-  access_log <%= ENV['NGINX_ACCESS_LOG_PATH'] || 'logs/nginx/access.log' %> l2met;
-  error_log <%= ENV['NGINX_ERROR_LOG_PATH'] || 'logs/nginx/error.log' %>;
+	# Gzip
+	gzip on;
+	gzip_comp_level 2;
+	gzip_min_length 1000;
+	gzip_proxied expired no-cache no-store private auth;
+	gzip_types text/plain application/x-javascript text/xml text/css application/xml;
 
+	# Logging
+	log_format l2met 'measure#nginx.service=$request_time request_id=$http_x_request_id';
+	access_log off;
+	error_log logs/nginx/error.log;
 
-  include mime.types;
-  default_type application/octet-stream;
-  sendfile on;
+	# Other
+	server_tokens off;
+	include mime.types;
+	sendfile on;
 
-  # Must read the body in 5 seconds.
-  client_body_timeout <%= ENV['NGINX_CLIENT_BODY_TIMEOUT'] || 5 %>;
+	server {
+		listen <%= ENV["PORT"] %>;
+		server_name _;
 
+    root /app/src/public;
 
-  upstream backend {
-    zone backend 64k;
-    server cors-f.herokuapp.com max_fails=3 fail_timeout=30s;
-    server cors-f1.herokuapp.com max_fails=3 fail_timeout=30s;
-    server cors-f2.herokuapp.com backup;
-  }
-
-	upstream app_server {
-		server unix:/tmp/nginx.socket fail_timeout=0;
- 	}
-
-  server {
-    listen <%= ENV["PORT"] %>;
-    server_name _;
-    keepalive_timeout 5;
-
-
-    location / {
+		location / {
+			proxy_pass https://cors-f.herokuapp.com;
+			proxy_redirect off;
 			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 			proxy_set_header Host $http_host;
-			proxy_redirect off;
-			proxy_pass http://app_server;
-    }
-  }
-}
 
+			# Rewrites
+			rewrite /the-planets(.*)$ /planets$1 break;
+		}
+	}
+}
