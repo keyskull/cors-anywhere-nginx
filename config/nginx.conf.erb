@@ -50,7 +50,6 @@ http {
         location / {
             set $upstream upstream_app_a;
             proxy_pass https://$upstream;
-            proxy_ssl_protocols XXXX;
             proxy_ssl_session_reuse off;
             proxy_ssl_name *.herokuapp.com;
             proxy_set_header x-forwarded-host $host;
