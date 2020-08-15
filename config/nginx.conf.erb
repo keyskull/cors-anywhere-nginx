@@ -48,12 +48,19 @@ http {
         server_name _;
 
         location / {
+            if ($request_method = 'OPTIONS') {
+              add_header Access-Control-Allow-Origin *;
+              add_header Access-Control-Allow-Credentials true;
+              add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
+              add_header 'Access-Control-Allow-Headers' 'Authorization,DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+              return 200;
+            }
             set $upstream upstream_app_a;
             proxy_pass https://$upstream;
-            proxy_ssl_name *.herokuapp.com;
+            proxy_ssl_name cors-f.herokuapp.com;
             proxy_set_header x-forwarded-host $host;
             proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header Host https://$upstream;
+            proxy_set_header Host cors-f.herokuapp.comm;
         }
 
     }
