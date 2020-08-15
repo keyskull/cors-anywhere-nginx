@@ -38,6 +38,8 @@ http {
 
 
   server {
+    listen 8080;
+
     location / {
       if ($request_method = 'OPTIONS') {
         add_header Access-Control-Allow-Origin *;
